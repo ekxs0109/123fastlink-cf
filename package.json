@@ -30,6 +30,6 @@
   },
   "homepage": "https://github.com/ekxs0109/123fastlink-cf#readme",
   "devDependencies": {
-    "wrangler": "^4.0.0"
+    "wrangler": "^4.45.0"
   }
 }
