@@ -9,6 +9,7 @@
     "tail": "wrangler tail",
     "login": "wrangler login"
   },
+  "packageManager": "pnpm@10.17.1",
   "keywords": [
     "cloudflare",
     "workers",

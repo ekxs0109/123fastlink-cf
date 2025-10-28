@@ -25,9 +25,9 @@
 ```bash
 git clone git@github.com:ekxs0109/123fastlink-cf.git
 cd 123fastlink-cf
-npm install
+pnpm install
 npx wrangler login
-npm run deploy
+pnpm run deploy
 ```
 
 ## 📖 使用说明
@@ -44,8 +44,8 @@ npm run deploy
 ## 🛠️ 本地开发
 
 ```bash
-npm install
-npm run dev
+pnpm install
+pnpm run dev
 # 访问 http://localhost:8787
 ```
 
@@ -65,4 +65,4 @@ npm run dev
 
 ## 📄 许可证
 
-MIT License
+Apache License
