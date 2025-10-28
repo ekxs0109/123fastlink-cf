@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>网盘秒传JSON生成器</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+      min-height: 100vh; 
+      padding: 20px; 
+    }
+    .container { 
+      max-width: 900px; 
+      margin: 0 auto; 
+      background: white; 
+      border-radius: 16px; 
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3); 
+      padding: 40px; 
+    }
+    h1 { color: #333; margin-bottom: 10px; font-size: 28px; }
+    .subtitle { color: #666; margin-bottom: 30px; font-size: 14px; }
+    .info-box { 
+      background: #e7f3ff; 
+      border-left: 4px solid #2196F3; 
+      padding: 12px 16px; 
+      margin-bottom: 20px; 
+      border-radius: 4px; 
+      font-size: 13px; 
+      color: #333; 
+    }
+    .form-group { margin-bottom: 20px; }
+    label { 
+      display: block; 
+      margin-bottom: 8px; 
+      color: #333; 
+      font-weight: 500; 
+      font-size: 14px; 
+    }
+    .label-with-hint { display: flex; justify-content: space-between; align-items: center; }
+    .hint { font-size: 12px; color: #999; font-weight: normal; }
+    input, textarea, select { 
+      width: 100%; 
+      padding: 12px; 
+      border: 2px solid #e0e0e0; 
+      border-radius: 8px; 
+      font-size: 14px; 
+      font-family: inherit; 
+      transition: border-color 0.3s;
+    }
+    input:focus, textarea:focus, select:focus { outline: none; border-color: #667eea; }
+    textarea { resize: vertical; min-height: 120px; }
+    select { cursor: pointer; background: white; }
+    .auto-parse-btn {
+      margin-top: 10px;
+      padding: 8px 16px;
+      background: #2196F3;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .auto-parse-btn:hover { background: #1976D2; }
+    .detected-info {
+      margin-top: 10px;
+      padding: 10px;
+      background: #f0f8ff;
+      border-radius: 6px;
+      font-size: 13px;
+      display: none;
+    }
+    .detected-info.show { display: block; }
+    .detected-info .type-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      background: #28a745;
+      color: white;
+      border-radius: 12px;
+      font-size: 12px;
+      margin-right: 8px;
+    }
+    button.primary { 
+      width: 100%; 
+      padding: 14px; 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+      color: white; 
+      border: none; 
+      border-radius: 8px; 
+      font-size: 16px; 
+      font-weight: 600; 
+      cursor: pointer; 
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    button.primary:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4); }
+    button.primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .result { 
+      margin-top: 20px; 
+      padding: 15px; 
+      background: #f8f9fa; 
+      border-radius: 8px; 
+      display: none; 
+    }
+    .result.show { display: block; }
+    .result.success { background: #d4edda; border-left: 4px solid #28a745; }
+    .result.error { background: #f8d7da; border-left: 4px solid #dc3545; }
+    .result-text { 
+      word-break: break-all; 
+      color: #333; 
+      white-space: pre-wrap; 
+      font-family: monospace; 
+      font-size: 12px; 
+      max-height: 400px; 
+      overflow-y: auto; 
+    }
+    .copy-btn { 
+      margin-top: 10px; 
+      width: auto; 
+      padding: 8px 16px; 
+      background: #28a745; 
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px; 
+      cursor: pointer;
+    }
+    .cookie-saved {
+      display: inline-block;
+      margin-left: 10px;
+      padding: 4px 10px;
+      background: #28a745;
+      color: white;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: normal;
+    }
+    .clear-cookie {
+      margin-left: 10px;
+      padding: 2px 8px;
+      background: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>⚡ 网盘秒传JSON生成器</h1>
+    <p class="subtitle">支持 123网盘、189网盘、夸克网盘 - 智能识别网盘类型</p>
+    
+    <div class="info-box">
+      💡 <strong>使用提示：</strong>粘贴完整分享文本自动解析，或手动选择网盘类型并填写信息
+    </div>
+
+    <div class="form-group">
+      <label>快速解析（粘贴完整分享文本）</label>
+      <textarea id="share-text" placeholder="粘贴完整的分享文本，例如：
+
+我用夸克网盘分享了「文件名」
+链接：https://pan.quark.cn/s/xxxxx
+提取码：xxxx
+
+或者直接粘贴链接"></textarea>
+      <div id="detected-info" class="detected-info"></div>
+    </div>
+
+    <div class="form-group">
+      <label>网盘类型</label>
+      <select id="pan-type" onchange="onPanTypeChange()">
+        <option value="">-- 请选择网盘类型 --</option>
+        <option value="123">123网盘</option>
+        <option value="189">189网盘</option>
+        <option value="quark">夸克网盘</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>分享链接</label>
+      <input type="text" id="share-url" placeholder="例如：https://pan.quark.cn/s/xxxxx">
+    </div>
+
+    <div class="form-group">
+      <label>提取码（选填）</label>
+      <input type="text" id="share-password" placeholder="如有提取码请输入">
+    </div>
+
+    <div class="form-group" id="cookie-group" style="display:none;">
+      <div class="label-with-hint">
+        <label>
+          夸克网盘Cookie（必填）
+          <span id="cookie-saved-badge" class="cookie-saved" style="display:none;">✓ 已保存</span>
+        </label>
+        <span class="hint">
+          <button class="clear-cookie" id="clear-cookie-btn" style="display:none;" onclick="clearCookie()">清除</button>
+          <a href="#" onclick="showCookieHelp(); return false;" style="color: #667eea; text-decoration: none;">如何获取?</a>
+        </span>
+      </div>
+      <textarea id="quark-cookie" rows="3" placeholder="登录 https://pan.quark.cn，按F12打开开发者工具，在Network标签中找到任意请求的Cookie"></textarea>
+    </div>
+
+    <button class="primary" id="generate-btn" onclick="generate()">生成秒传JSON</button>
+    <div id="result" class="result"></div>
+  </div>
+
+  <script>
+    // 防抖函数
+    function debounce(func, wait) {
+      let timeout;
+      return function executedFunction(...args) {
+        const later = () => {
+          clearTimeout(timeout);
+          func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+      };
+    }
+
+    // 检测网盘类型
+    function detectPanType(text) {
+      // 先解码URL
+      try {
+        text = decodeURIComponent(text);
+      } catch (e) {
+        // 如果解码失败，使用原始文本
+        console.log('URL decode failed, using original text');
+      }
+      
+      const detections = {
+        '123': {
+          urlRegex: /https?:\/\/(?:www\.)?123(?:\d+|pan)\.\w+\/s\/([a-zA-Z0-9\-]+)/,
+          pwdRegex: /(?:提取码|密码|访问码)[：:\s]*([a-zA-Z0-9]{4})/,
+          name: '123网盘'
+        },
+        '189': {
+          urlRegex: /https?:\/\/cloud\.189\.cn\/(?:t\/([a-zA-Z0-9]+)|web\/share\?code=([a-zA-Z0-9]+))/,
+          pwdRegex: /(?:提取码|访问码)[：:\s]*([a-zA-Z0-9]+)/,
+          name: '189网盘'
+        },
+        'quark': {
+          urlRegex: /https?:\/\/pan\.quark\.cn\/s\/([a-zA-Z0-9]+)/,
+          pwdRegex: /(?:提取码|密码)[：:\s]*([a-zA-Z0-9]+)/,
+          name: '夸克网盘'
+        }
+      };
+
+      for (const [type, config] of Object.entries(detections)) {
+        const urlMatch = text.match(config.urlRegex);
+        if (urlMatch) {
+          let password = '';
+          
+          // 1. 首先尝试从URL参数中提取密码 (?pwd=xxxx)
+          const urlPwdMatch = text.match(/[?&]pwd=([a-zA-Z0-9]+)/);
+          if (urlPwdMatch) {
+            password = urlPwdMatch[1];
+          } else {
+            // 2. 如果URL参数中没有，尝试从文本中提取
+            const pwdMatch = text.match(config.pwdRegex);
+            if (pwdMatch) {
+              password = pwdMatch[1];
+            }
+          }
+          
+          // For 189, we have two possible capture groups (t/xxx or ?code=xxx)
+          const shareKey = type === '189' ? (urlMatch[1] || urlMatch[2]) : urlMatch[1];
+          return {
+            type,
+            name: config.name,
+            url: urlMatch[0],
+            shareKey,
+            password: password,
+            needsCookie: type === 'quark'
+          };
+        }
+      }
+      return null;
+    }
+
+    // 自动解析
+    function autoParse() {
+      const text = document.getElementById('share-text').value.trim();
+      const detectedDiv = document.getElementById('detected-info');
+      
+      if (!text) {
+        showResult(document.getElementById('result'), '请输入分享内容', 'error');
+        return;
+      }
+
+      const detected = detectPanType(text);
+      if (detected) {
+        // 填充表单
+        document.getElementById('pan-type').value = detected.type;
+        document.getElementById('share-url').value = detected.url;
+        document.getElementById('share-password').value = detected.password;
+        
+        // 显示检测结果
+        let html = `<span class="type-badge">✓ 已识别</span>`;
+        html += `${detected.name} | 链接: ${detected.url}`;
+        if (detected.password) {
+          html += ` | 提取码: ${detected.password}`;
+        }
+        detectedDiv.innerHTML = html;
+        detectedDiv.classList.add('show');
+        
+        // 处理Cookie显示
+        onPanTypeChange();
+      } else {
+        detectedDiv.innerHTML = '<span style="color: #dc3545;">❌ 未识别到有效的网盘链接</span>';
+        detectedDiv.classList.add('show');
+      }
+    }
+
+    // 网盘类型变化
+    function onPanTypeChange() {
+      const type = document.getElementById('pan-type').value;
+      const cookieGroup = document.getElementById('cookie-group');
+      
+      if (type === 'quark') {
+        cookieGroup.style.display = 'block';
+        loadSavedCookie();
+      } else {
+        cookieGroup.style.display = 'none';
+      }
+    }
+
+    // Cookie管理
+    function saveCookie(cookie) {
+      localStorage.setItem('quark_cookie', cookie);
+      showCookieSavedBadge();
+    }
+
+    function loadSavedCookie() {
+      const saved = localStorage.getItem('quark_cookie');
+      const cookieInput = document.getElementById('quark-cookie');
+      if (saved) {
+        cookieInput.value = saved;
+        showCookieSavedBadge();
+      }
+    }
+
+    function showCookieSavedBadge() {
+      const badge = document.getElementById('cookie-saved-badge');
+      const clearBtn = document.getElementById('clear-cookie-btn');
+      badge.style.display = 'inline-block';
+      clearBtn.style.display = 'inline-block';
+    }
+
+    function clearCookie() {
+      if (confirm('确定要清除保存的Cookie吗？')) {
+        localStorage.removeItem('quark_cookie');
+        document.getElementById('quark-cookie').value = '';
+        document.getElementById('cookie-saved-badge').style.display = 'none';
+        document.getElementById('clear-cookie-btn').style.display = 'none';
+      }
+    }
+
+    // Cookie输入框失焦时保存
+    document.getElementById('quark-cookie').addEventListener('blur', function() {
+      const cookie = this.value.trim();
+      if (cookie) {
+        saveCookie(cookie);
+      }
+    });
+
+    // 显示Cookie获取帮助
+    function showCookieHelp() {
+      alert('获取夸克Cookie步骤：\n\n1. 打开 https://pan.quark.cn 并登录\n2. 按 F12 打开开发者工具\n3. 切换到 Network (网络) 标签\n4. 刷新页面\n5. 点击任意请求\n6. 在 Request Headers 中找到 Cookie\n7. 复制完整的 Cookie 值\n\n提示：Cookie会自动保存到浏览器本地');
+    }
+
+    // 生成秒传JSON
+    async function generate() {
+      const panType = document.getElementById('pan-type').value;
+      const shareUrl = document.getElementById('share-url').value.trim();
+      const sharePassword = document.getElementById('share-password').value.trim();
+      const btn = document.getElementById('generate-btn');
+      const result = document.getElementById('result');
+
+      if (!panType) {
+        showResult(result, '请选择网盘类型', 'error');
+        return;
+      }
+
+      if (!shareUrl) {
+        showResult(result, '请输入分享链接', 'error');
+        return;
+      }
+
+      // 检查夸克网盘是否有Cookie
+      if (panType === 'quark') {
+        const cookie = document.getElementById('quark-cookie').value.trim();
+        if (!cookie) {
+          showResult(result, '夸克网盘需要提供Cookie', 'error');
+          return;
+        }
+      }
+
+      btn.disabled = true;
+      btn.textContent = '生成中...';
+
+      try {
+        let requestBody = {};
+        
+        if (panType === 'quark') {
+          const cookie = document.getElementById('quark-cookie').value.trim();
+          requestBody = { shareUrl, sharePassword, cookie };
+        } else {
+          requestBody = { shareUrl, sharePassword };
+        }
+
+        const res = await fetch('/api/' + panType + '/rapid', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(requestBody)
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          const json = JSON.stringify(data.rapidTransferJson, null, 2);
+          const panNames = {'123': '123网盘', '189': '189网盘', 'quark': '夸克网盘'};
+          showResult(result, `[${panNames[panType]}] 秒传JSON已生成：\n\n${json}`, 'success', json);
+        } else {
+          showResult(result, `生成失败: ${data.error}`, 'error');
+        }
+      } catch (error) {
+        showResult(result, `请求失败: ${error.message}`, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '生成秒传JSON';
+      }
+    }
+
+    function showResult(el, msg, type, copyText) {
+      el.className = 'result show ' + type;
+      el.innerHTML = '<div class="result-text">' + msg + '</div>';
+      
+      if (copyText) {
+        const btn = document.createElement('button');
+        btn.className = 'copy-btn';
+        btn.textContent = '📋 复制JSON';
+        btn.onclick = function() {
+          navigator.clipboard.writeText(copyText);
+          btn.textContent = '✅ 已复制';
+          setTimeout(() => btn.textContent = '📋 复制JSON', 2000);
+        };
+        el.appendChild(btn);
+      }
+    }
+
+    // 页面加载完成后初始化
+    document.addEventListener('DOMContentLoaded', function() {
+      const shareTextArea = document.getElementById('share-text');
+      
+      // 创建防抖的自动解析函数（500ms延迟）
+      const debouncedAutoParse = debounce(function() {
+        const text = shareTextArea.value.trim();
+        if (text) {
+          autoParse();
+        }
+      }, 500);
+      
+      // 监听输入和粘贴事件
+      shareTextArea.addEventListener('input', debouncedAutoParse);
+      shareTextArea.addEventListener('paste', function() {
+        // 粘贴后稍微延迟，确保内容已经填充
+        setTimeout(debouncedAutoParse, 100);
+      });
+    });
+  </script>
+</body>
+</html>

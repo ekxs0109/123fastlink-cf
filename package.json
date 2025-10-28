@@ -1,0 +1,35 @@
+{
+  "name": "123fastlink-cf",
+  "version": "1.0.0",
+  "description": "一键部署到 Cloudflare Workers 的云盘秒传服务，支持123云盘、夸克网盘、天翼云盘",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail",
+    "login": "wrangler login"
+  },
+  "keywords": [
+    "cloudflare",
+    "workers",
+    "cloudflare-workers",
+    "123pan",
+    "quark",
+    "cloud-storage",
+    "rapid-transfer",
+    "秒传"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:ekxs0109/123fastlink-cf.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ekxs0109/123fastlink-cf/issues"
+  },
+  "homepage": "https://github.com/ekxs0109/123fastlink-cf#readme",
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}
