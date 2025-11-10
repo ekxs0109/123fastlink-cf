@@ -125,6 +125,11 @@ async function getQuarkShareFiles(
         const fids = batch.map((item) => item.fid);
         const tokens = batch.map((item) => item.token);
 
+        // 延迟500ms再请求下一个
+        if (i > 0) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+
         try {
           const md5Res = await fetch(
             `https://pc-api.uc.cn/1/clouddrive/file/download?pr=ucpro&fr=pc&uc_param_str=&__dt=${Math.floor(Math.random() * 4 + 1) * 60 * 1000}&__t=${Date.now()}`,
